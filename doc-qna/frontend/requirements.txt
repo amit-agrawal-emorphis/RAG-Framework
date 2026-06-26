@@ -1,0 +1,7 @@
+streamlit
+streamlit[pdf]
+streamlit-pdf-viewer>=0.0.20
+markdown>=3.5
+pywebview
+Pillow>=10.0
+numpy>=1.24

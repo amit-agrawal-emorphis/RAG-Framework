@@ -1,0 +1,15 @@
+numpy
+tqdm
+pypdf
+python-docx
+llama-cpp-python
+faiss-cpu
+fastapi
+uvicorn
+lingua-language-detector
+Pillow
+python-multipart
+faster-whisper>=1.0.0
+piper-tts
+av
+onnxruntime
