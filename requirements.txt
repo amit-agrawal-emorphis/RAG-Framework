@@ -1,0 +1,13 @@
+# Full install (both apps + Nuitka). For a slimmer env, install only the frontend/backend
+# requirement files under doc-qna/ and/or doc-management/.
+-r doc-qna/frontend/requirements.txt
+-r doc-qna/backend/requirements.txt
+-r doc-management/frontend/requirements.txt
+-r doc-management/backend/requirements.txt
+# llama-cpp-python: `pip install` alone is CPU-only. On Windows run once after pip install:
+#   .\setup_llama_gpu_windows.ps1
+# Requires the LunarG Vulkan SDK. Shipped .exe builds run this via doc-qna\build.ps1 / build_windows.ps1.
+nuitka==4.0.7
+python-multipart
+ffmpeg
+faster-whisper>=1.0.0
