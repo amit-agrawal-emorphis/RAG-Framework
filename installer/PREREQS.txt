@@ -1,0 +1,47 @@
+YUKTRA-EQ INSTALLER — PREREQUISITES & BUILD STEPS
+==================================================
+
+This turns the portable release\ folder into install.exe (+ uninstaller) with:
+  - Program Files install, ProgramData data
+  - backend as auto-start Windows Service (NSSM)
+  - firewall rules (8008/8009, in+out)
+  - WebView2 runtime auto-install
+  - desktop + Start Menu icon (yuktra-eq.exe), splash launcher
+  - uninstaller that removes service+firewall and asks before deleting data
+
+ONE-TIME PREREQUISITES (install/download these on the build machine):
+--------------------------------------------------------------------
+1. Inno Setup 6  -> https://jrsoftware.org/isdl.php   (installs ISCC.exe)
+2. NSSM          -> https://nssm.cc/download
+                    put nssm.exe (64-bit)  ->  installer\tools\nssm.exe
+3. WebView2 Evergreen Standalone Installer (x64) ->
+                    https://developer.microsoft.com/microsoft-edge/webview2/
+                    save as  ->  installer\tools\MicrosoftEdgeWebView2Setup.exe
+4. App icon      ->  installer\icons\yuktra.ico   (multi-size 16..256 px)
+
+BUILD STEPS:
+-----------
+1. Build the portable app (if not already):
+       .\build_windows.ps1
+2. Build the installer:
+       .\build_installer.ps1
+   Output: dist_installer\yuktra-eq-setup.exe
+
+WHAT THE INSTALLER DOES (yuktra-eq.iss):
+---------------------------------------
+- Installs to  C:\Program Files\Yuktra-EQ  (admin)
+- Seeds data to  C:\ProgramData\Yuktra-EQ\data  (writable, survives reinstall)
+- Port wizard page (backend 8008 / UI 8009 defaults)
+- NSSM service "YuktraEQBackend" (auto-start) running yktra-eq-backend.exe
+- Firewall allow rules (prefix "YuktraEQ ")
+- WebView2 install if missing
+- Desktop/Start-Menu shortcut -> yuktra-eq.exe (splash -> waits backend -> opens UI)
+
+NAMING (flat payload):
+  backend.exe   -> yktra-eq-backend.exe   (service)
+  frontend.exe  -> webview-runner.exe     (UI host)
+  yuktra-eq.exe -> launcher (user entry, desktop icon)
+
+NOTE: must be COMPILED + TESTED on a clean Windows VM (install -> use -> restart
+-> uninstall). Unsigned exes show SmartScreen warnings — code-signing needed for
+a fully "trusted" experience (see INSTALLER_BUILD_REPORT.md §10).

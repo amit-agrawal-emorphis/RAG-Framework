@@ -1,0 +1,11 @@
+# Legacy alias: GPU settings are now in docker-compose.yml (NVIDIA + iGPU).
+# This file only adds optional overrides. Use docker-compose.cpu.yml on CPU-only hosts.
+#
+#   docker compose up -d doc-management          # default: NVIDIA + iGPU when present
+#   docker compose -f docker-compose.yml -f docker-compose.cpu.yml up -d doc-management
+#
+services:
+  doc-management:
+    environment:
+      YUKTRA_DM_USE_GPU: "${YUKTRA_DM_USE_GPU:-auto}"
+      YUKTRA_LLM_N_GPU_LAYERS: "${YUKTRA_LLM_N_GPU_LAYERS:--1}"

@@ -1,0 +1,12 @@
+# Override for CPU-only hosts: disable GPU device passthrough.
+# Use when the machine has no NVIDIA GPU and no /dev/dri (or compose fails on devices).
+#
+#   docker compose -f docker-compose.yml -f docker-compose.cpu.yml up -d doc-management
+#
+services:
+  doc-management:
+    environment:
+      YUKTRA_DM_USE_GPU: "0"
+    gpus: !reset null
+    devices: !reset []
+    group_add: !reset []

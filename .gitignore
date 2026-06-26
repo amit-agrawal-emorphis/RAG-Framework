@@ -4,10 +4,15 @@ __pycache__/
 *.pyc
 .env
 nuitka.logs
-data/models/
+data/models/*
+!data/models/.gitkeep
 data/logs/
 data/chat_history_db/*.sqlite3
 data/*.db
 *.gguf
 node_modules/
 doc-management/frontend/react-app/dist/
+
+# Large Windows installer binaries (download separately; exceed GitHub 100 MB limit)
+installer/tools/MicrosoftEdgeWebView2Setup.exe
+pre-requisite-icon/MicrosoftEdgeWebView2RuntimeInstallerX64.exe

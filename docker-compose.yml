@@ -1,0 +1,75 @@
+# Run doc-management (Nuitka binary + FastAPI on :8000) and doc-qna (Windows exe, served separately).
+# Build from repo root:
+#   docker compose up --build
+#
+# Data: one host folder is mounted where each app expects it (see volumes).
+# Override host path: HOST_DATA_PATH=/path/to/data docker compose up -d
+#
+# GPU (doc-management ingest embeddings via llama-cpp CUDA + Vulkan):
+#   - NVIDIA: gpus + NVIDIA_DRIVER_CAPABILITIES (graphics helps Vulkan ICD too)
+#   - Intel/AMD iGPU: /dev/dri passthrough
+#   - No GPU: remove gpus + devices blocks, or set YUKTRA_DM_USE_GPU=0
+# Requires NVIDIA Container Toolkit on hosts with NVIDIA GPUs.
+
+services:
+  doc-management:
+    image: registry.emorphis.com/plantpilot/yuktra-ipc/doc-management:${IMAGE_TAG:-latest}
+    build:
+      context: .
+      dockerfile: doc-management/Dockerfile
+    container_name: yuktra-doc-management
+    restart: unless-stopped
+    ports:
+      - "${DOC_MANAGEMENT_PORT:-8000}:8001"
+    environment:
+      DATA_DIR: /app/data
+      YUKTRA_DM_DATA_DIR: /app/data
+      YUKTRA_DM_API_HOST: 0.0.0.0
+      YUKTRA_DM_API_PORT: "8001"
+      YUKTRA_ALLOW_MISSING_MODELS: "${YUKTRA_ALLOW_MISSING_MODELS:-1}"
+      YUKTRA_DM_USE_GPU: "${YUKTRA_DM_USE_GPU:-auto}"
+      NVIDIA_VISIBLE_DEVICES: all
+      # 'graphics' mounts the NVIDIA Vulkan ICD so llama-cpp Vulkan uses the GPU
+      # instead of mesa llvmpipe (CPU). Required on NVIDIA hosts.
+      NVIDIA_DRIVER_CAPABILITIES: compute,utility,graphics
+    volumes:
+      - "${HOST_DATA_PATH:-./data}:/app/data"
+      - "${HOST_DATA_PATH:-./data}:/app/doc-management/data"
+    # NVIDIA discrete GPU (Tesla T4, etc.) — works with plain `docker compose up`
+    gpus: all
+    # Intel/AMD integrated GPU — harmless on NVIDIA-only hosts that also expose /dev/dri
+    devices:
+      - /dev/dri:/dev/dri
+    group_add:
+      - video
+      - render
+
+  doc-qna:
+    image: registry.emorphis.com/plantpilot/yuktra-ipc/doc-qna:${IMAGE_TAG:-latest}
+    build:
+      context: ./doc-qna
+      dockerfile: Dockerfile
+    container_name: yuktra-doc-qna
+    restart: unless-stopped
+    ports:
+      - "${DOC_QNA_API_PORT:-8008}:8008"
+      - "${DOC_QNA_STREAMLIT_PORT:-8501}:8501"
+    environment:
+      DATA_DIR: /app/data
+      YUKTRA_PIPER_BIN: /opt/piper/piper
+      YUKTRA_PIPER_MODEL_PATH: /opt/piper-models/en_IN-medium.onnx
+      LD_LIBRARY_PATH: /opt/piper
+      YUKTRA_QNA_API_HOST: 0.0.0.0
+      YUKTRA_QNA_API_PORT: "8008"
+      # Keep loopback for server-side Python in the container. The Streamlit app rewrites this
+      # for browser fetches (TTS, STT, /images) to the request Host + this port (see streamlit_app).
+      # Optional override: YUKTRA_QNA_BROWSER_API_BASE: https://your-public-qna-api.example.com
+      YUKTRA_QNA_API_BASE: http://127.0.0.1:8008
+      YUKTRA_QNA_SKIP_WARMUP: "${YUKTRA_QNA_SKIP_WARMUP:-1}"
+      STREAMLIT_SERVER_ADDRESS: 0.0.0.0
+      STREAMLIT_SERVER_PORT: "8501"
+      STREAMLIT_SERVER_HEADLESS: "true"
+      STREAMLIT_BROWSER_GATHER_USAGE_STATS: "false"
+    volumes:
+      - "${HOST_DATA_PATH:-./data}:/app/data"
+      - "${HOST_DATA_PATH:-./data}:/app/doc-qna/data"
