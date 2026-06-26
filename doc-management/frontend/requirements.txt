@@ -1,0 +1,3 @@
+# Doc-management Streamlit UI (optional; used by frontend/launcher.py)
+streamlit
+pywebview

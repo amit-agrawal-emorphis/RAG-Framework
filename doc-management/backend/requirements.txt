@@ -1,0 +1,2 @@
+numpy
+docling==2.89
